@@ -1,0 +1,45 @@
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import axios from 'axios';
+
+dotenv.config()
+const app = express()
+const PORT = 5000
+
+
+
+app.use(cors());
+
+app.get('/', (req, res) => {
+    res.json({ message: `server scapper sedang berjalan` })
+})
+
+
+app.get('/api/search', async (req, res) => {
+    const q = req.query.q
+
+    if (!q) {
+        return res.status(400).json({ error: "Keyword harus diisi" })
+    }
+
+    try {
+        const result = await axios.get('https://serpapi.com/search.json', {
+            params: {
+                engine: "google_scholar",
+                q:q,
+                hl: 'id',
+                api_key: process.env.SERPAPI_KEY
+            }
+        })
+
+        res.json(result.data.organic_results)
+    }
+    catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+})
+
+app.listen(PORT, () => {
+    console.log(`server jalan di http://localhost:${PORT}`)
+})
