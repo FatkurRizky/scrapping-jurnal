@@ -17,11 +17,17 @@ app.get('/', (req, res) => {
 
 
 app.get('/api/search', async (req, res) => {
-    const q = req.query.q
+    let q = req.query.q
+    const c = req.query.checkBoxSinta
 
     if (!q) {
         return res.status(400).json({ error: "Keyword harus diisi" })
     }
+
+    if(c === "true"){
+        q = q + " sinta"
+    }
+
 
     try {
         const result = await axios.get('https://serpapi.com/search.json', {
@@ -29,7 +35,7 @@ app.get('/api/search', async (req, res) => {
                 engine: "google_scholar",
                 q:q,
                 hl: 'id',
-                api_key: process.env.SERPAPI_KEY
+                api_key: process.env.SERPAPI_KEY,
             }
         })
 
