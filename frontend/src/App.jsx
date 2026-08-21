@@ -35,7 +35,13 @@ export default function App() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [data, setData] = useState(DATA_DUMMY);
+  const [data, setData] = useState([]);
+  const [isCheckBoxSinta, setIsCheckBoxSinta] = useState(false);
+
+
+  const handleChecked = (e) => {
+    setIsCheckBoxSinta(e.target.checked)
+  }
 
   const handleInput = (e) => {
     setInput(e.target.value);
@@ -46,7 +52,7 @@ export default function App() {
     setError("");
     const URL = "http://localhost:5000/api/search";
     try {
-      const response = await axios.get(URL, { params: { q: input } });
+      const response = await axios.get(URL, { params: { q: input, checkBoxSinta: isCheckBoxSinta } });
       setData(response.data);
     } catch (err) {
       setError(err.response?.data?.message || err.message);
@@ -59,11 +65,11 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100">
-      <div className="max-w-4xl mx-auto px-6 py-12">
-        <h1 className="text-3xl font-bold text-center mb-2">Scholar Search</h1>
+      <div className="max-w-4xl mx-auto py-12 px-4 md:px-6">
+        <h1 className="text-2xl font-bold text-center mb-2 md:text-3xl">Scholar Search</h1>
         <p className="text-slate-400 text-center mb-8">Cari jurnal dan paper akademik dari Google Scholar</p>
 
-        <div className="flex max-w-2xl mx-auto gap-3 mb-10">
+        <div className="flex max-w-2xl mx-auto gap-3 mb-10 flex-col sm:flex-row">
           <input
             type="text"
             placeholder="Ketik topik penelitian..."
@@ -71,6 +77,13 @@ export default function App() {
             onChange={handleInput}
             className="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
           />
+
+          <div className="flex items-center gap-2">
+            <label htmlFor="sinta" >Sinta</label>
+            <input type="checkbox" id="sinta" className="accent-blue-500 cursor-pointer" checked={isCheckBoxSinta} onChange={handleChecked} />
+          </div>
+
+          
           <button
             onClick={handleSearch}
             disabled={isLoading || !input.trim()}
@@ -86,17 +99,18 @@ export default function App() {
           </div>
         )}
 
-        <div className="space-y-4">
+        {/*Card */}
+        <div className="space-y-8 ">
           {isLoading ? (
-            <p className="animate-pulse bg-slate-500 text-center py-12">Mencari jurnal ...</p>
-          ):
-            data === null ? (
+            <p className="animate-pulse text-center py-12">Mencari jurnal ...</p>
+          ) :
+            data === DATA_DUMMY ? (
               <p className="text-slate-500 text-center py-12">Mulai cari jurnal</p>
             ) : data.length === 0 ? (<p className="text-slate-500 text-center py-12">Tidak ada hasil untuk {input}</p>) : (
               data.map((jurnal) => (
                 <div
                   key={jurnal.result_id}
-                  className="bg-slate-800 border border-slate-700 rounded-lg p-6 text-left hover:border-slate-500 transition"
+                  className="bg-slate-800 border border-slate-700 rounded-lg text-left hover:border-slate-500 transition p-4 md:p-6"
                 >
                   <h2 className="text-lg font-semibold text-blue-400">{jurnal.title}</h2>
                   <p className="text-sm text-slate-400 mt-1">{jurnal.publication_info?.summary}</p>
