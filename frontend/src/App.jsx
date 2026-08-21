@@ -37,6 +37,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [data, setData] = useState([]);
   const [isCheckBoxSinta, setIsCheckBoxSinta] = useState(false);
+  const [page, setPage] = useState(1);
 
 
   const handleChecked = (e) => {
@@ -47,12 +48,15 @@ export default function App() {
     setInput(e.target.value);
   };
 
-  const handleSearch = async () => {
+
+
+
+  const handleSearch = async (targetPage = page) => {
     setIsLoading(true);
     setError("");
     const URL = "http://localhost:5000/api/search";
     try {
-      const response = await axios.get(URL, { params: { q: input, checkBoxSinta: isCheckBoxSinta } });
+      const response = await axios.get(URL, { params: { q: input, checkBoxSinta: isCheckBoxSinta, start: (targetPage - 1) * 10 } });
       setData(response.data);
     } catch (err) {
       setError(err.response?.data?.message || err.message);
@@ -60,6 +64,17 @@ export default function App() {
       setIsLoading(false);
     }
   };
+
+    const handlePagination = (direction) => {
+      const newPage = page + direction
+      if(newPage < 1)return;
+      setPage(newPage)
+      handleSearch(newPage)
+  }
+
+
+
+
 
 
 
@@ -83,7 +98,7 @@ export default function App() {
             <input type="checkbox" id="sinta" className="accent-blue-500 cursor-pointer" checked={isCheckBoxSinta} onChange={handleChecked} />
           </div>
 
-          
+
           <button
             onClick={handleSearch}
             disabled={isLoading || !input.trim()}
