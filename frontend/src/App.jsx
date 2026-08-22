@@ -138,7 +138,7 @@ export default function App() {
             ))
           ) : data.length === 0 ? (
             <p className="text-slate-500 text-center py-12">
-              Tidak ada hasil untuk {input}
+              Masukkan Keyword untuk mencari topik penelitian
             </p>
           ) : (
             data.map((jurnal) => (
