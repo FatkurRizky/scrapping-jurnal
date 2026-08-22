@@ -6,7 +6,9 @@ const DATA_DUMMY = [
     title: "Machine Learning for Cybersecurity: A Systematic Review",
     snippet:
       "This paper reviews the application of machine learning techniques in cybersecurity, covering intrusion detection, malware classification, and anomaly detection across enterprise networks.",
-    publication_info: { summary: "Journal of Computer Security, 2025 — Smith, J., Lee, K." },
+    publication_info: {
+      summary: "Journal of Computer Security, 2025 — Smith, J., Lee, K.",
+    },
     link: "https://example.com",
     inline_links: { cited_by: { total: 142 } },
     result_id: "101",
@@ -15,7 +17,9 @@ const DATA_DUMMY = [
     title: "Klasifikasi Malware Menggunakan Convolutional Neural Network",
     snippet:
       "Penelitian ini mengusulkan pendekatan CNN untuk klasifikasi malware berdasarkan visualisasi binary. Akurasi mencapai 97.3% pada dataset benchmark.",
-    publication_info: { summary: "Jurnal Informatika, Maret 2026 — Budi, A., Sari, R." },
+    publication_info: {
+      summary: "Jurnal Informatika, Maret 2026 — Budi, A., Sari, R.",
+    },
     link: "https://example.com",
     inline_links: { cited_by: { total: 28 } },
     result_id: "102",
@@ -37,22 +41,31 @@ export default function App() {
   const [error, setError] = useState("");
   const [data, setData] = useState([]);
   const [isCheckBoxSinta, setIsCheckBoxSinta] = useState(false);
+  const [page, setPage] = useState(1);
 
+  const skeleton = [1, 2, 3, 4];
 
   const handleChecked = (e) => {
-    setIsCheckBoxSinta(e.target.checked)
-  }
+    setIsCheckBoxSinta(e.target.checked);
+  };
 
   const handleInput = (e) => {
     setInput(e.target.value);
   };
 
-  const handleSearch = async () => {
+  const handleSearch = async (targetPage = page) => {
+    setPage(targetPage)
     setIsLoading(true);
     setError("");
     const URL = "http://localhost:5000/api/search";
     try {
-      const response = await axios.get(URL, { params: { q: input, checkBoxSinta: isCheckBoxSinta } });
+      const response = await axios.get(URL, {
+        params: {
+          q: input,
+          checkBoxSinta: isCheckBoxSinta,
+          start: (targetPage - 1) * 10,
+        },
+      });
       setData(response.data);
     } catch (err) {
       setError(err.response?.data?.message || err.message);
@@ -61,13 +74,22 @@ export default function App() {
     }
   };
 
-
+  const handlePagination = (direction) => {
+    const newPage = page + direction;
+    if (newPage < 1) return;
+    setPage(newPage);
+    handleSearch(newPage);
+  };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100">
+    <div className="min-h-screen scroll-smooth md:scroll-auto bg-slate-900 text-slate-100">
       <div className="max-w-4xl mx-auto py-12 px-4 md:px-6">
-        <h1 className="text-2xl font-bold text-center mb-2 md:text-3xl">Scholar Search</h1>
-        <p className="text-slate-400 text-center mb-8">Cari jurnal dan paper akademik dari Google Scholar</p>
+        <h1 className="text-2xl font-bold text-center mb-2 md:text-3xl">
+          Scholar Search
+        </h1>
+        <p className="text-slate-400 text-center mb-8">
+          Cari jurnal dan paper akademik dari Google Scholar
+        </p>
 
         <div className="flex max-w-2xl mx-auto gap-3 mb-10 flex-col sm:flex-row">
           <input
@@ -79,11 +101,16 @@ export default function App() {
           />
 
           <div className="flex items-center gap-2">
-            <label htmlFor="sinta" >Sinta</label>
-            <input type="checkbox" id="sinta" className="accent-blue-500 cursor-pointer" checked={isCheckBoxSinta} onChange={handleChecked} />
+            <label htmlFor="sinta">Sinta</label>
+            <input
+              type="checkbox"
+              id="sinta"
+              className="accent-blue-500 cursor-pointer"
+              checked={isCheckBoxSinta}
+              onChange={handleChecked}
+            />
           </div>
 
-          
           <button
             onClick={handleSearch}
             disabled={isLoading || !input.trim()}
@@ -102,38 +129,74 @@ export default function App() {
         {/*Card */}
         <div className="space-y-8 ">
           {isLoading ? (
-            <p className="animate-pulse text-center py-12">Mencari jurnal ...</p>
-          ) :
-            data === DATA_DUMMY ? (
-              <p className="text-slate-500 text-center py-12">Mulai cari jurnal</p>
-            ) : data.length === 0 ? (<p className="text-slate-500 text-center py-12">Tidak ada hasil untuk {input}</p>) : (
-              data.map((jurnal) => (
-                <div
-                  key={jurnal.result_id}
-                  className="bg-slate-800 border border-slate-700 rounded-lg text-left hover:border-slate-500 transition p-4 md:p-6"
-                >
-                  <h2 className="text-lg font-semibold text-blue-400">{jurnal.title}</h2>
-                  <p className="text-sm text-slate-400 mt-1">{jurnal.publication_info?.summary}</p>
-                  <p className="text-slate-300 mt-3 leading-relaxed">{jurnal.snippet}</p>
+            skeleton.map((item) => (
+              <div key={item} className="animate-pulse space-y-3">
+                <div className="h-5 bg-slate-600  rounded w-3/4"></div>
+                <div className="h-3 bg-slate-600  rounded w-full"></div>
+                <div className="h-3 bg-slate-600  rounded w-5/6"></div>
+              </div>
+            ))
+          ) : data.length === 0 ? (
+            <p className="text-slate-500 text-center py-12">
+              Masukkan Keyword untuk mencari topik penelitian
+            </p>
+          ) : (
+            data.map((jurnal) => (
+              <div
+                key={jurnal.result_id}
+                className="bg-slate-800 border border-slate-700 rounded-lg text-left hover:border-slate-500 transition p-4 md:p-6"
+              >
+                <h2 className="text-lg font-semibold text-blue-400">
+                  {jurnal.title}
+                </h2>
+                <p className="text-sm text-slate-400 mt-1">
+                  {jurnal.publication_info?.summary}
+                </p>
+                <p className="text-slate-300 mt-3 leading-relaxed">
+                  {jurnal.snippet}
+                </p>
 
-                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-700">
-                    <a
-                      href={jurnal.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-400 hover:text-blue-300 text-sm font-medium transition"
-                    >
-                      Baca Paper →
-                    </a>
-                    <span className="bg-slate-700 text-slate-300 text-xs font-medium px-3 py-1 rounded-full">
-                      Dikutip: {jurnal.inline_links?.cited_by?.total || 0}
-                    </span>
-                  </div>
+                <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-700">
+                  <a
+                    href={jurnal.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300 text-sm font-medium transition"
+                  >
+                    Baca Paper →
+                  </a>
+                  <span className="bg-slate-700 text-slate-300 text-xs font-medium px-3 py-1 rounded-full">
+                    Dikutip: {jurnal.inline_links?.cited_by?.total || 0}
+                  </span>
                 </div>
-              ))
-            )
-          }
+              </div>
+            ))
+          )}
         </div>
+
+        {/* Pagination */}
+
+        {data.length > 0 && (
+          <div className="flex gap-12 p-12 items-center justify-center bg-slate-800 font-extrabold mt-auto">
+            <button
+              className="flex-1 bg-slate-700 hover:bg-slate-600 rounded cursor-pointer  text-white disabled:cursor-not-allowed px-6 py-2"
+              onClick={() => handlePagination(-1)}
+              disabled={page === 1 || isLoading}
+            >
+              Prev
+            </button>
+            <button className="shrink-0 bg-slate-700 hover:bg-slate-600 text-white rounded cursor-pointer disabled:cursor-not-allowed">{page}</button>
+            <button
+              className="flex-1 bg-slate-700 hover:bg-slate-600 rounded cursor-pointer  text-white disabled:cursor-not-allowed px-6 py-2"
+              onClick={() => handlePagination(+1)}
+              disabled={isLoading || data.length === 0}
+            >
+              Next
+            </button>
+          </div>
+        )}
+
+
       </div>
     </div>
   );

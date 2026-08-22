@@ -19,6 +19,7 @@ app.get('/', (req, res) => {
 app.get('/api/search', async (req, res) => {
     let q = req.query.q
     const c = req.query.checkBoxSinta
+    const start = parseInt(req.query.start)||0
 
     if (!q) {
         return res.status(400).json({ error: "Keyword harus diisi" })
@@ -35,11 +36,16 @@ app.get('/api/search', async (req, res) => {
                 engine: "google_scholar",
                 q:q,
                 hl: 'id',
+                start:start,
                 api_key: process.env.SERPAPI_KEY,
             }
         })
 
-        res.json(result.data.organic_results)
+        if(result.data.error){
+            return res.status(502).json({error: result.data.error})
+        }
+
+        res.json(result.data.organic_results || [])
     }
     catch (err) {
         res.status(500).json({ error: err.message })
