@@ -143,7 +143,7 @@ export default function App() {
 
           {/* filter */}
           <div className="flex items-center gap-2">
-            <label htmlFor="filter">Filter</label>
+            <label htmlFor="filter">Open Access</label>
             <input type="checkbox" className="accent-blue-500 cursor-pointer" id="filter" checked={isFilterBoolean} onChange={handleFilter} />
           </div>
 
