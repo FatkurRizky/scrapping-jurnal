@@ -42,12 +42,42 @@ export default function App() {
   const [data, setData] = useState([]);
   const [isCheckBoxSinta, setIsCheckBoxSinta] = useState(false);
   const [page, setPage] = useState(1);
+  const [isFilterBoolean, setIsFilterBoolean] = useState(false)
 
-  const skeleton = [1, 2, 3, 4];
+  // kalau mau render lebih dari 100
+  const skeleton = Array(4).fill(0).map((_, i) => i)
+
+  // gunakan ini lebih mudah jika array sedikit
+  // const skeleton = [1,2,3,4]
+
+  // session pada jam 02:00
+  // opencode -s ses_fd9fc5b05ffejShGxNVpn8fbdS
 
   const handleChecked = (e) => {
     setIsCheckBoxSinta(e.target.checked);
   };
+
+
+  const handleFilter = (e) => {
+    setIsFilterBoolean(e.target.checked);
+  }
+
+  // filter
+  const displayedData = isFilterBoolean ? data.filter(jurnal => jurnal.resources?.[0]?.link) : data;
+
+
+  const handleSort = (direction) => {
+
+    const sorted = [...data].sort((a, b) => {
+      const aCitation = a.inline_links?.cited_by?.total || 0;
+      const bCitation = b.inline_links?.cited_by?.total || 0;
+      return direction === "high" ? bCitation - aCitation : aCitation - bCitation;
+    })
+
+    setData(sorted)
+  }
+
+
 
   const handleInput = (e) => {
     setInput(e.target.value);
@@ -111,8 +141,33 @@ export default function App() {
             />
           </div>
 
+          {/* filter */}
+          <div className="flex items-center gap-2">
+            <label htmlFor="filter">Filter</label>
+            <input type="checkbox" className="accent-blue-500 cursor-pointer" id="filter" checked={isFilterBoolean} onChange={handleFilter} />
+          </div>
+
+
+
+          {/* DROPDOWN */}
+
+          <select name="" onChange={(e) => handleSort(e.target.value)} id="">
+            {data.length > 0 && (
+
+                <>
+                  <option value="">Urutkan</option>
+                  <option value={"high"}>Tertinggi</option>
+                  <option value={"low"}>Terendah</option>
+                </>
+
+
+            )}
+
+          </select>
+
+
           <button
-            onClick={handleSearch}
+            onClick={() => handleSearch(1)}
             disabled={isLoading || !input.trim()}
             className="bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-medium px-6 py-3 rounded-lg transition cursor-pointer disabled:cursor-not-allowed"
           >
@@ -141,7 +196,7 @@ export default function App() {
               Masukkan Keyword untuk mencari topik penelitian
             </p>
           ) : (
-            data.map((jurnal) => (
+            displayedData.map((jurnal) => (
               <div
                 key={jurnal.result_id}
                 className="bg-slate-800 border border-slate-700 rounded-lg text-left hover:border-slate-500 transition p-4 md:p-6"
@@ -185,11 +240,11 @@ export default function App() {
             >
               Prev
             </button>
-            <button className="shrink-0 bg-slate-700 hover:bg-slate-600 text-white rounded cursor-pointer disabled:cursor-not-allowed">{page}</button>
+            <button className="shrink-0  text-white rounded cursor-pointer disabled:cursor-not-allowed">{page}</button>
             <button
               className="flex-1 bg-slate-700 hover:bg-slate-600 rounded cursor-pointer  text-white disabled:cursor-not-allowed px-6 py-2"
               onClick={() => handlePagination(+1)}
-              disabled={isLoading || data.length === 0}
+              disabled={isLoading}
             >
               Next
             </button>
